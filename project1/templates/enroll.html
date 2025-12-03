@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Enroll in a Membership Plan | IronXFit{% endblock %}
+
+{% block head %}
+<style>
+    .enrollment-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        background-color: #fff;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    .form-control, .form-select {
+        padding: 12px 15px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        transition: all 0.3s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    }
+    .btn-enroll {
+        background-color: #4e73df;
+        color: white;
+        font-weight: 600;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+    .btn-enroll:hover {
+        background-color: #2e59d9;
+        transform: translateY(-2px);
+    }
+    .membership-card {
+        border: 1px solid #e3e6f0;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s;
+    }
+    .membership-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    .membership-card.selected {
+        border: 2px solid #4e73df;
+        background-color: #f8f9fc;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="enrollment-container">
+        <h2 class="text-center mb-4">Join IronXFit Today</h2>
+        <p class="text-center text-muted mb-5">Fill out the form below to start your fitness journey with us.</p>
+        
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form id="enrollmentForm" method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label for="fullName" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="fullName" name="FullName" 
+                           value="{{ user.get_full_name|default:'' }}" required>
+                    <div class="invalid-feedback">
+                        Please enter your full name.
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           value="{{ user.email }}" readonly required>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label for="gender" class="form-label">Gender</label>
+                    <select class="form-select" id="gender" name="gender" required>
+                        <option value="" selected disabled>Select Gender</option>
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                        <option value="O">Other</option>
+                    </select>
+                    <div class="invalid-feedback">
+                        Please select your gender.
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="phoneNumber" class="form-label">Phone Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text">+91</span>
+                        <input type="tel" class="form-control" id="phoneNumber" name="PhoneNumber" 
+                               value="{{ user.username }}" pattern="[0-9]{10}" required>
+                    </div>
+                    <div class="invalid-feedback">
+                        Please enter a valid 10-digit phone number.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label for="dob" class="form-label">Date of Birth</label>
+                    <input type="date" class="form-control" id="dob" name="DOB" 
+                           max="{{ max_date }}" min="{{ min_date }}" required>
+                    <div class="invalid-feedback">
+                        Please enter a valid date of birth (must be at least 16 years old).
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="trainer" class="form-label">Select Trainer (Optional)</label>
+                    <select class="form-select" id="trainer" name="trainer">
+                        <option value="" selected>No preference</option>
+                        {% for trainer in trainers %}
+                        <option value="{{ trainer.id }}">
+                            {{ trainer.name }} ({{ trainer.get_gender_display }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label">Select Membership Plan</label>
+                {% if membership_plans.exists %}
+                    <div class="row">
+                        {% for plan in membership_plans %}
+                        <div class="col-md-6 mb-3">
+                            <div class="membership-card" onclick="selectPlan('{{ forloop.counter }}')">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="membership_plan" 
+                                           id="plan{{ forloop.counter }}" value="{{ plan.id }}" 
+                                           {% if forloop.first %}checked{% endif %} required>
+                                    <label class="form-check-label fw-bold" for="plan{{ forloop.counter }}">
+                                        {{ plan.get_plan_display }}
+                                    </label>
+                                </div>
+                                <div class="mt-2">
+                                    <h4 class="text-primary">₹{{ plan.price }}/month</h4>
+                                    <p class="text-muted mb-2">{{ plan.description|default:"No description available." }}</p>
+                                    <small class="text-muted">Duration: {{ plan.duration_days }} day{{ plan.duration_days|pluralize }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No membership plans are currently available. Please check back later or contact support.
+                    </div>
+                {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="address" class="form-label">Full Address</label>
+                <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                <div class="invalid-feedback">
+                    Please provide your full address.
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="reference" class="form-label">How did you hear about us? (Optional)</label>
+                <input type="text" class="form-control" id="reference" name="reference" 
+                       placeholder="Friend, Social Media, Google, etc.">
+            </div>
+            
+            <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" id="terms" required>
+                <label class="form-check-label" for="terms">
+                    I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a>
+                </label>
+                <div class="invalid-feedback">
+                    You must agree to the terms and conditions.
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2">
+                <button class="btn btn-enroll btn-lg" type="submit">
+                    <i class="fas fa-check-circle me-2"></i>Complete Enrollment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Membership Terms</h6>
+                <p>By enrolling in our membership program, you agree to the following terms and conditions:</p>
+                <ul>
+                    <li>Membership is non-transferable and non-refundable.</li>
+                    <li>Monthly payments will be automatically charged to your preferred payment method.</li>
+                    <li>You may cancel your membership with 30 days' notice.</li>
+                    <li>All members must follow the gym rules and code of conduct.</li>
+                    <li>We reserve the right to terminate memberships for violations of gym policies.</li>
+                </ul>
+                <h6 class="mt-4">Health and Safety</h6>
+                <p>By signing up, you confirm that you are in good health and have consulted with a physician regarding your ability to participate in physical activities.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function () {
+    'use strict';
+    
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.querySelectorAll('.needs-validation');
+    
+    // Loop over them and prevent submission
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+    
+    // Format phone number
+    document.getElementById('phoneNumber').addEventListener('input', function (e) {
+        let x = e.target.value.replace(/\D/g, '').match(/(\d{0,5})(\d{0,5})/);
+        e.target.value = x[1] + (x[2] ? x[2] : '');
+    });
+    
+    // Set max date for DOB (must be at least 16 years old)
+    function setMaxDate() {
+        const today = new Date();
+        const maxDate = new Date(today.getFullYear() - 16, today.getMonth(), today.getDate());
+        return maxDate.toISOString().split('T')[0];
+    }
+    
+    // Set min date (100 years ago)
+    function setMinDate() {
+        const today = new Date();
+        const minDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate());
+        return minDate.toISOString().split('T')[0];
+    }
+    
+    // Initialize date input with max and min dates if not set by server
+    const dobInput = document.getElementById('dob');
+    if (dobInput && !dobInput.getAttribute('max')) {
+        dobInput.setAttribute('max', setMaxDate());
+        dobInput.setAttribute('min', setMinDate());
+    }
+    
+    // Handle membership plan selection
+    function selectPlan(planNumber) {
+        // Remove selected class from all cards
+        var cards = document.querySelectorAll('.membership-card');
+        for (var i = 0; i < cards.length; i++) {
+            cards[i].classList.remove('selected');
+        }
+        
+        // Add selected class to clicked card and check the radio
+        var radio = document.getElementById('plan' + planNumber);
+        if (radio) {
+            radio.checked = true;
+            // Find the parent membership-card element
+            var card = radio;
+            while (card && !card.classList.contains('membership-card')) {
+                card = card.parentElement;
+                if (card === document.body) { card = null; break; }
+            }
+            if (card) {
+                card.classList.add('selected');
+            }
+        }
+    }
+    
+    // Initialize first plan as selected
+    document.addEventListener('DOMContentLoaded', function() {
+        const firstPlan = document.querySelector('.membership-card');
+        if (firstPlan) firstPlan.classList.add('selected');
+    });
+})();
+</script>
+{% endblock %}
