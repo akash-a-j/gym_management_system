@@ -1,18 +1,42 @@
 {% extends "base.html" %}
 
-{% block content %}
-  <div class="product-detail">
-    <h2>{{ product.name }}</h2>
-    <p>Price: ${{ product.price }}</p>
-    <p>Stock: {{ product.stock }} items available</p>
-    
-    {% if product.image %}
-      <img src="{{ product.image.url }}" alt="{{ product.name }}" width="300" height="300">
-    {% endif %}
-    
-    <p><strong>Category:</strong> {{ product.category.name }}</p>
-    <p><strong>Available:</strong> {% if product.is_available %} Yes {% else %} No {% endif %}</p>
+{% block title %}{{ product.name }}{% endblock title %}
 
-    <a href="{% url 'product_list' %}">Back to Products</a>
+{% block page_title %}{{ product.name }}{% endblock page_title %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row">
+    <div class="col-md-6 mb-4">
+      {% if product.image %}
+        <img src="{{ product.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ product.name }}">
+      {% else %}
+        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 400px;">
+          <p class="text-muted">No image available</p>
+        </div>
+      {% endif %}
+    </div>
+    <div class="col-md-6">
+      <div class="product-details">
+        <h2 class="mb-3">{{ product.name }}</h2>
+        <p class="lead">{{ product.description|linebreaksbr }}</p>
+        
+        <div class="my-4">
+          <span class="h4 font-weight-bold">Price: ${{ product.price }}</span>
+        </div>
+
+        <ul class="list-unstyled">
+          <li><strong>Category:</strong> {{ product.category.name }}</li>
+          <li><strong>Stock:</strong> <span class="badge bg-{% if product.stock > 0 %}success{% else %}danger{% endif %}">{{ product.stock }} items available</span></li>
+          <li><strong>Available:</strong> {% if product.is_available %} Yes {% else %} No {% endif %}</li>
+        </ul>
+
+        <div class="mt-4">
+          <a href="{% url 'product_list' %}" class="btn btn-secondary">Back to Products</a>
+        </div>
+      </div>
+    </div>
   </div>
-{% endblock %}
+</div>
+{% endblock content %}
+

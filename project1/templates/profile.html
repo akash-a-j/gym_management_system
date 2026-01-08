@@ -2,18 +2,16 @@
 {% block title %}
 Profile
 {% endblock title %}
-{% block body %}
 
+{% block page_title %}Profile{% endblock page_title %}
 
-
-
+{% block content %}
 <div class="container">
-
     <div class="row">
     
     <div class="col-md-4">
       
-    <h1>Enrollment Details</h1>
+    <h2>Enrollment Details</h2>
     {% comment %} Contact Us COde  {% endcomment %}
     {% for post in posts %}
     
@@ -93,4 +91,4 @@ Profile
 
 
 
-{% endblock body %}
+{% endblock content %}

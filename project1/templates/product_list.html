@@ -1,57 +1,57 @@
 {% extends "base.html" %}
 {% block title %}Products{% endblock title %}
 
-{% block body %}
-<div class="container" style="margin-top: 100px;">
-  <h2 class="mb-4">Products</h2>
-  
+{% block page_title %}Our Products{% endblock page_title %}
+
+{% block content %}
+<div class="container my-5">
+
   {% if messages %}
     {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
         {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
     {% endfor %}
   {% endif %}
 
   <div class="row">
-    {% if categories %}
-      <div class="col-md-3">
-        <div class="categories mb-4">
-          <h4>Categories</h4>
-          <div class="list-group">
-            <a href="{% url 'product_list' %}" class="list-group-item list-group-item-action {% if not category %}active{% endif %}">
-              All Products
+    <div class="col-lg-3">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white">
+          <h4 class="mb-0">Categories</h4>
+        </div>
+        <div class="list-group list-group-flush">
+          <a href="{% url 'product_list' %}" class="list-group-item list-group-item-action {% if not category %}active{% endif %}">
+            All Products
+          </a>
+          {% for cat in categories %}
+            <a href="{% url 'product_list_by_category' cat.id %}" class="list-group-item list-group-item-action {% if category.id == cat.id %}active{% endif %}">
+              {{ cat.name }}
             </a>
-            {% for cat in categories %}
-              <a href="{% url 'product_list_by_category' cat.id %}" 
-                 class="list-group-item list-group-item-action {% if category.id == cat.id %}active{% endif %}">
-                {{ cat.name }}
-              </a>
-            {% endfor %}
-          </div>
+          {% endfor %}
         </div>
       </div>
-    {% endif %}
+    </div>
 
-    <div class="{% if categories %}col-md-9{% else %}col-md-12{% endif %}">
+    <div class="col-lg-9">
       {% if category %}
-        <h3 class="mb-3">Category: {{ category.name }}</h3>
+        <h3 class="mb-4">Category: {{ category.name }}</h3>
       {% endif %}
-      
-      <div class="row">
+
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% for product in products %}
-          <div class="col-md-4 mb-4">
-            <div class="card h-100">
+          <div class="col">
+            <div class="card h-100 shadow-sm product-card">
               {% if product.image %}
                 <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
               {% endif %}
-              <div class="card-body">
+              <div class="card-body d-flex flex-column">
                 <h5 class="card-title">{{ product.name }}</h5>
-                <p class="card-text">
-                  <strong>Price:</strong> ${{ product.price }}<br>
-                  <strong>Stock:</strong> {{ product.stock }} items available
-                </p>
-                <a href="{% url 'product_detail' product.id %}" class="btn btn-primary">View Details</a>
+                <p class="card-text text-muted">${{ product.price }}</p>
+                <div class="mt-auto">
+                  <a href="{% url 'product_detail' product.id %}" class="btn btn-warning w-100">View Details</a>
+                </div>
               </div>
             </div>
           </div>
@@ -66,4 +66,14 @@
     </div>
   </div>
 </div>
-{% endblock body %}
+
+<style>
+  .product-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  }
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+  }
+</style>
+{% endblock content %}
