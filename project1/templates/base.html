@@ -45,10 +45,13 @@
             </ul>
           </li>
           {% if request.user.is_authenticated %}
-          <li><a class="nav-link" href="{% url 'handleLogout' %}">Logout</a></li>
+            {% if request.user.is_staff %}
+              <li><a class="nav-link" href="{% url 'dashboard' %}">Admin Dashboard</a></li>
+            {% endif %}
+            <li><a class="nav-link" href="{% url 'handleLogout' %}">Logout</a></li>
           {% else %}
-          <li><a class="nav-link" href="{% url 'handlelogin' %}">Login</a></li>
-          <li><a class="nav-link" href="{% url 'signup' %}">Signup</a></li>
+            <li><a class="nav-link" href="{% url 'handlelogin' %}">Login</a></li>
+            <li><a class="nav-link" href="{% url 'signup' %}">Signup</a></li>
           {% endif %}
         </ul>
         <i class="bi bi-list mobile-nav-toggle"></i>

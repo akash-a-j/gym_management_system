@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Manage Trainers{% endblock title %}
+
+{% block page_title %}Manage Trainers{% endblock page_title %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{% url 'trainer_add' %}" class="btn btn-warning">Add New Trainer</a>
+    </div>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h3 class="card-title mb-4">Existing Trainers</h3>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Image</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Gender</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trainer in trainers %}
+                        <tr>
+                            <td>
+                                {% if trainer.img %}
+                                    <img src="{{ trainer.img.url }}" alt="{{ trainer.name }}" width="50" height="50" class="rounded-circle" style="object-fit: cover;">
+                                {% endif %}
+                            </td>
+                            <td>{{ trainer.name }}</td>
+                            <td>{{ trainer.gender }}</td>
+                            <td>{{ trainer.email }}</td>
+                            <td>
+                                <a href="{% url 'trainer_edit' trainer.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <form action="{% url 'trainer_delete' trainer.pk %}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this trainer?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">No trainers found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

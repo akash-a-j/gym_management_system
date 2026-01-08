@@ -1,8 +1,10 @@
 from django.shortcuts import render,redirect,get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate,login,logout
 from authapp.models import Contact,MembershipPlan,Trainer,Enrollment,Gallery,Attendance,Category,Product
+from .forms import TrainerForm, GalleryForm, ProductForm
 
 # Create your views here.
 def Home(request):
@@ -182,3 +184,126 @@ def enroll(request):
 
 
     return render(request,"enroll.html",context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def dashboard(request):
+    return render(request, "dashboard.html")
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def manage_trainers(request):
+    trainers = Trainer.objects.all()
+    context = {'trainers': trainers}
+    return render(request, 'manage_trainers.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def trainer_add(request):
+    if request.method == 'POST':
+        form = TrainerForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Trainer added successfully!')
+            return redirect('manage_trainers')
+    else:
+        form = TrainerForm()
+    return render(request, 'trainer_form.html', {'form': form})
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def trainer_edit(request, pk):
+    trainer = get_object_or_404(Trainer, pk=pk)
+    if request.method == 'POST':
+        form = TrainerForm(request.POST, request.FILES, instance=trainer)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Trainer updated successfully!')
+            return redirect('manage_trainers')
+    else:
+        form = TrainerForm(instance=trainer)
+    return render(request, 'trainer_form.html', {'form': form})
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def trainer_delete(request, pk):
+    trainer = get_object_or_404(Trainer, pk=pk)
+    if request.method == 'POST':
+        trainer.delete()
+        messages.success(request, 'Trainer deleted successfully!')
+        return redirect('manage_trainers')
+    # This view will only handle POST requests, so we can redirect if it's a GET request
+    return redirect('manage_trainers')
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def manage_gallery(request):
+    if request.method == 'POST':
+        form = GalleryForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Image uploaded successfully!')
+            return redirect('manage_gallery')
+    else:
+        form = GalleryForm()
+    
+    gallery_items = Gallery.objects.all()
+    context = {
+        'form': form,
+        'gallery_items': gallery_items
+    }
+    return render(request, 'manage_gallery.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def gallery_delete(request, pk):
+    gallery_item = get_object_or_404(Gallery, pk=pk)
+    if request.method == 'POST':
+        gallery_item.delete()
+        messages.success(request, 'Image deleted successfully!')
+        return redirect('manage_gallery')
+    return redirect('manage_gallery')
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def manage_products(request):
+    products = Product.objects.all()
+    context = {'products': products}
+    return render(request, 'manage_products.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def product_add(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Product added successfully!')
+            return redirect('manage_products')
+    else:
+        form = ProductForm()
+    return render(request, 'product_form.html', {'form': form})
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def product_edit(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Product updated successfully!')
+            return redirect('manage_products')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'product_form.html', {'form': form})
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def product_delete(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        product.delete()
+        messages.success(request, 'Product deleted successfully!')
+        return redirect('manage_products')
+    return redirect('manage_products')
